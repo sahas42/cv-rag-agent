@@ -1,0 +1,1 @@
+Create a binary mask of all red regions in the input image using the HSV colour space, save it as mask.png, and print how many pixels are red.

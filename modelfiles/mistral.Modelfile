@@ -1,0 +1,9 @@
+# Import a local Mistral-Instruct GGUF:   ollama create mistral-local -f modelfiles/mistral.Modelfile
+FROM ../models/mistral-instruct.Q4_K_M.gguf
+TEMPLATE """[INST] {{ if .System }}{{ .System }}
+
+{{ end }}{{ .Prompt }} [/INST]"""
+PARAMETER stop "[INST]"
+PARAMETER stop "[/INST]"
+PARAMETER temperature 0.2
+PARAMETER num_ctx 8192

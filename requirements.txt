@@ -1,0 +1,14 @@
+# Minimum versions; exact versions tested are in requirements-lock.txt
+langchain-core>=0.3
+langchain-ollama>=0.3
+langchain-chroma>=0.2
+langchain-text-splitters>=0.3
+chromadb>=0.5
+ollama>=0.4
+opencv-python>=4.8
+numpy
+pillow
+scikit-image
+scipy
+matplotlib
+pytest

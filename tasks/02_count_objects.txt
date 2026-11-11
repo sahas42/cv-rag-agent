@@ -1,0 +1,1 @@
+Count the bright objects in the input image using thresholding and contours. Draw their contours on the image, save it as count.png, and print the number of objects.

@@ -1,0 +1,1 @@
+Add Gaussian noise (sigma 20) to the input image, denoise it with a bilateral filter, save denoised.png, and print the PSNR of the noisy and the denoised image against the original.

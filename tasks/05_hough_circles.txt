@@ -1,0 +1,1 @@
+Detect circles in the input image with the Hough circle transform, draw them in green, save circles.png, and print how many circles were found.

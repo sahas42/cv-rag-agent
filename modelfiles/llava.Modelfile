@@ -1,0 +1,5 @@
+# Import a local LLaVA GGUF (two files: language model + mmproj vision projector):
+#   ollama create llava-local -f modelfiles/llava.Modelfile
+FROM ../models/llava-v1.6-mistral-7b.Q4_K_M.gguf
+FROM ../models/mmproj-model-f16.gguf
+PARAMETER temperature 0

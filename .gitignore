@@ -1,0 +1,9 @@
+__pycache__/
+.pytest_cache/
+chroma_db*/
+agent_runs/
+smoke_runs/
+docs/api/
+models/
+*.gguf
+.venv/

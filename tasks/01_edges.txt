@@ -1,0 +1,1 @@
+Read the input image, detect edges with the Canny edge detector, and save the edge map as edges.png.
