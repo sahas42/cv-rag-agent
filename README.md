@@ -23,9 +23,35 @@ bash setup.sh                 # Windows: .\setup.ps1
 python rag_agent.py --docs docs --task "Detect edges in input.jpg with Canny and save edges.png" --image input.jpg
 ```
 
-`setup.sh` installs packages, starts Ollama, pulls the three models if missing, dumps API docs
-of the installed libraries into `docs/api/`, checks everything, and builds `chroma_db/`.
-Different models: `CODER=qwen2.5-coder:1.5b VLM=moondream bash setup.sh`.
+`setup.sh` creates `.venv`, installs packages (from `resources/wheels` if present), installs
+Ollama without sudo into `~/.local/ollama` if it is missing, starts it, pulls the three models,
+dumps API docs of the installed libraries into `docs/api/`, checks everything, and builds
+`chroma_db/`. Different models: `CODER=qwen2.5-coder:1.5b VLM=moondream bash setup.sh`.
+
+## Two machines: dev desktop + remote run machine
+
+On the **desktop** (where you write code):
+
+```bash
+git clone <your-repo-url> cv-rag-agent && cd cv-rag-agent
+REMOTE_PY=3.11 bash fetch_resources.sh          # docs + images + wheels + VS Code extensions
+bash fetch_resources.sh push   --to user@remote-host:cv-rag-agent [--port 22] [--key ~/.ssh/id]
+bash fetch_resources.sh remote --to user@remote-host:cv-rag-agent   # runs setup.sh over ssh
+```
+
+| Step | Result | Where it is used |
+| --- | --- | --- |
+| `docs` | OpenCV Python tutorials + samples, scikit-image gallery -> `docs/external/` | Indexed by the agent |
+| `docs` | Ollama, LangChain, Chroma docs -> `reference/` (`grep -rn "ChatOllama" reference/`) | For you; not indexed |
+| `images` | OpenCV + scikit-image sample images -> `resources/images/` | Test inputs (`--image`) |
+| `wheels` | Wheels for the remote's Python (`REMOTE_PY`, `REMOTE_PLAT=linux/win/mac`) -> `resources/wheels/` | `setup.sh` installs from them; `OFFLINE=1` needs no internet |
+| `vscode` | Python, Pylance, debugpy, Jupyter, Ruff, Error Lens, Remote - SSH | Desktop; Remote - SSH edits and runs on the remote |
+| `models` | `ollama pull` of coder, embed, VLM + fallbacks | Wherever Ollama runs |
+| `push` | Repo + docs + resources, minus caches, via rsync or tar over ssh | `--to /media/usb/dir` copies to a USB drive |
+| `remote` | `ssh -t ... bash setup.sh` on the remote | Remote |
+
+`all` = docs, images, wheels, vscode, push, remote. Check the remote's Python first
+(`ssh user@host python3 --version`) and pass it as `REMOTE_PY`.
 
 ## Exam-day checklist
 
@@ -40,6 +66,7 @@ Different models: `CODER=qwen2.5-coder:1.5b VLM=moondream bash setup.sh`.
 
 | Command | What it does |
 | --- | --- |
+| `bash fetch_resources.sh [steps] [--to target]` | Fetch docs/images/wheels on the desktop, push and set up the remote |
 | `python check_env.py [--coder M] [--embed E] [--vlm V]` | Packages, server, models, one chat/embed/vision call |
 | `python build_corpus.py [out_dir] [modules...]` | Docstrings of installed libs -> Markdown (default `docs/api/`) |
 | `python rag_agent.py --docs docs --rebuild` | (Re)build the vector store only |
@@ -70,6 +97,7 @@ from `OLLAMA_HOST` (default `http://127.0.0.1:11434`).
 | `tests/test_agent.py` | Offline tests: extraction, checks, hints, runner, fix loop, CLI over HTTP, every example |
 | `tests/fake_ollama_server.py` | Fake Ollama API: buggy code first, fixed code after "It FAILED" |
 | `requirements.txt` / `requirements-lock.txt` | Minimum versions / exact versions tested |
+| `fetch_resources.sh` | Desktop-side fetch of docs, images, wheels; push to remote or USB; remote bootstrap |
 
 ## How it was tested
 
@@ -79,6 +107,9 @@ from `OLLAMA_HOST` (default `http://127.0.0.1:11434`).
 * The end-to-end tests run the real CLI over HTTP against the fake Ollama server, covering
   `ChatOllama` streaming, `OllamaEmbeddings`, Chroma persistence, a failing first attempt,
   a successful fix, and the VLM check.
+* `fetch_resources.sh`: docs, images and wheels steps ran for real; Linux wheels for Python 3.11
+  installed with `--no-index` and all 20 tests passed on 3.11; push was tested to a local folder and
+  over a simulated ssh; `setup.sh` installed Ollama 0.40 without sudo and started the server.
 * Not tested with real model weights (the build sandbox could not download them):
   run `python smoke_test.py` once on your machine to measure real speed and success rate.
 
